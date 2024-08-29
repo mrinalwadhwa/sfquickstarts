@@ -191,13 +191,13 @@ To create the compute pool to run the application, connect to Snowflake and run 
 ```sql
 USE ROLE ACCOUNTADMIN;
 
-CREATE COMPUTE POOL API
+CREATE COMPUTE POOL API_POOl
   MIN_NODES = 1
   MAX_NODES = 5
   INSTANCE_FAMILY = CPU_X64_XS;
 
-GRANT USAGE ON COMPUTE POOL API TO ROLE DATA_API_ROLE;
-GRANT MONITOR ON COMPUTE POOL API TO ROLE DATA_API_ROLE;
+GRANT USAGE ON COMPUTE POOL API_POOl TO ROLE DATA_API_ROLE;
+GRANT MONITOR ON COMPUTE POOL API_POOl TO ROLE DATA_API_ROLE;
 ```
 
 <!-- ------------------------ -->
@@ -210,7 +210,7 @@ To create the service to host the application, connect to Snowflake and run the 
 USE ROLE DATA_API_ROLE;
 
 CREATE SERVICE API.PRIVATE.API
- IN COMPUTE POOL API
+ IN COMPUTE POOL API_POOl
  FROM SPECIFICATION
 $$
 spec:
@@ -293,23 +293,20 @@ docker push <repository_url>/ockam
 
 Next, create a new service in Snowflake to run the Ockam node. Run the following command in the Snowflake console or SnowSQL:
 
-> [!IMPORTANT]
-> Replace `TODO` values in `VALUE_LIST` with the `egress_allow_list` you just noted.
-
+Replace `&lt;EGRESS_ALLOW_LIST&gt;` values in `VALUE_LIST` with the `egress_allow_list` you just noted.
 ```sh
 # Example
 VALUE_LIST = ("4ed9ff5d-4953-4080-83c7-e69a3477a545.projects.orchestrator.ockam.io:443");
 ```
 
-> [!IMPORTANT]
-> Replace `&lt;OCKAM_ENROLLMENT_TICKET&gt;` with the contents of the `ticket` generated in the previous step with the `ockam project ticket` command.
+Replace `&lt;OCKAM_ENROLLMENT_TICKET&gt;` with the contents of the `ticket` generated in the previous step with the `ockam project ticket` command.
 
 ```sql
 USE ROLE ACCOUNTADMIN;
 
 -- Update VALUE_LIST with ockam egress details
 CREATE OR REPLACE NETWORK RULE OCKAM_OUT TYPE = 'HOST_PORT' MODE = 'EGRESS'
-VALUE_LIST = ("TODO");
+VALUE_LIST = ("<EGRESS_ALLOW_LIST>");
 
 CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION OCKAM
 ALLOWED_NETWORK_RULES = (OCKAM_OUT) ENABLED = true;
