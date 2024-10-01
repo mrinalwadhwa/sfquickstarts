@@ -19,7 +19,7 @@ This tutorial will go through how to build, deploy, and host a __private__ custo
 We will use [Ockam](https://www.ockam.io/) to __privately__ share this API with other enterprise applications. This
 private API will not have an endpoint that is exposed to the Internet. The tutorial will, instead, show you how to create
 end-to-end encrypted Ockam Portals from your enterprise applications to the API in Snowflake. The API would then only be
-accesible at private endpoints that are only available within your enterprise's VPC or other private environements.
+accessible at private endpoints that are only available within your enterprise's VPC or other private environments.
 
 This approach ensures that your API cannot be attacked from the Internet and its data will remain highly secure.
 
@@ -109,7 +109,7 @@ And the same ones using Snowpark:
 
 ### Code
 
-The `src/` directory has all the source code for the API. The `connector.py` file contains all the entrypoints for the API endpoints using the Snowflake Connector for Python. The `customers_top10()` function is one of the API endpoints we needed for this API which finds the top 10 customers by sales in a date range. Review the code and the SQL needed to retrieve the data from Snowflake and serialize it to JSON for the response. This endpoint also takes two optional query string parameters `start_range` and `end_range`.
+The `src/` directory has all the source code for the API. The `connector.py` file contains all the entrypoints for the API endpoints using the [Snowflake Connector for Python](https://docs.snowflake.com/en/user-guide/python-connector.html). The `customers_top10()` function is one of the API endpoints we needed for this API which finds the top 10 customers by sales in a date range. Review the code and the SQL needed to retrieve the data from Snowflake and serialize it to JSON for the response. This endpoint also takes two optional query string parameters `start_range` and `end_range`.
 
 ```python
 @connector.route('/customers/top10')
@@ -446,18 +446,30 @@ DROP WAREHOUSE IF EXISTS DATA_API_WH;
 ```
 
 <!-- ------------------------ -->
-## Conclusion
+## Conclusion And Resources
 Duration: 1
 
-You've successfully built a custom private API in Python Powered by Snowflake.
+Congratulations! You've successfully built and deployed a custom private API in Python powered by Snowflake, Ockam, and Flask. You created a secure API to share data stored in Snowflake over an HTTP API with enterprise applications, ensuring high security by using Ockam to create end-to-end encrypted portals. You configured the necessary Snowflake resources, built and containerized the application, and securely exposed the API within your enterprise's private environment. Finally, you tested the API endpoints and learned how to manage and clean up the deployed services.
 
 When you are ready to put a data API into production, you should protect the API with some level of authentication and authorization. You can do this with Ockam.
 
 To get more comfortable with this solution, implement new endpoints pointing to the sample dataset provided or other datasets.
 
-Code for this project is available at [https://github.com/sfc-gh-bculberson/lab_data_api_python](https://github.com/sfc-gh-bculberson/lab_data_api_python).
-
-### What we've covered
+### What You Learned
 
 - How to configure and build a custom API Powered by Snowflake
-- How to run and test the API on your machine
+- How to use Ockam to securely expose your private API
+- How to create and manage Snowflake resources such as warehouses, roles, and compute pools
+- How to containerize your application using Docker
+- How to deploy and run your application in Snowflake
+- How to test and verify API endpoints
+- How to manage and clean up deployed services
+
+### Related Resources
+
+- [Source Code on GitHub](https://github.com/sfc-gh-bculberson/lab_data_api_python)
+- [Snowpark for Python Developer Guide](https://docs.snowflake.com/en/developer-guide/snowpark/python/index.html)
+- [Snowpark for Python API Reference](https://docs.snowflake.com/en/developer-guide/snowpark/reference/python/index.html)
+- [Snowflake Connector for Python](https://docs.snowflake.com/en/user-guide/python-connector.html)
+- [GitHub Codespaces Documentation](https://docs.github.com/en/codespaces)
+- [TPC-H Dataset Documentation](https://docs.snowflake.com/en/user-guide/sample-data-tpch)
