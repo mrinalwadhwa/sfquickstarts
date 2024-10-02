@@ -73,6 +73,7 @@ USE ROLE ACCOUNTADMIN;
 CREATE ROLE DATA_API_ROLE;
 
 GRANT USAGE ON WAREHOUSE DATA_API_WH TO ROLE DATA_API_ROLE;
+CREATE DATABASE IF NOT EXISTS SNOWFLAKE_SAMPLE_DATA FROM SHARE SFC_SAMPLES.SAMPLE_DATA;
 GRANT IMPORTED PRIVILEGES ON DATABASE SNOWFLAKE_SAMPLE_DATA TO ROLE DATA_API_ROLE;
 
 GRANT ROLE DATA_API_ROLE TO ROLE ACCOUNTADMIN;
@@ -176,7 +177,8 @@ GRANT READ ON IMAGE REPOSITORY API TO ROLE DATA_API_ROLE;
 SHOW IMAGE REPOSITORIES;
 ```
 
-Note the `repository_url` in the response as that will be needed in the next step.
+> aside positive
+> Note the `repository_url` in the response as that will be needed in the next step.
 
 <!-- ------------------------ -->
 ## Pushing the Container to the Repository
@@ -199,13 +201,13 @@ To create the compute pool to run the application, connect to Snowflake and run 
 ```sql
 USE ROLE ACCOUNTADMIN;
 
-CREATE COMPUTE POOL API_POOl
+CREATE COMPUTE POOL API_POOL
   MIN_NODES = 1
   MAX_NODES = 5
   INSTANCE_FAMILY = CPU_X64_XS;
 
-GRANT USAGE ON COMPUTE POOL API_POOl TO ROLE DATA_API_ROLE;
-GRANT MONITOR ON COMPUTE POOL API_POOl TO ROLE DATA_API_ROLE;
+GRANT USAGE ON COMPUTE POOL API_POOL TO ROLE DATA_API_ROLE;
+GRANT MONITOR ON COMPUTE POOL API_POOL TO ROLE DATA_API_ROLE;
 ```
 
 <!-- ------------------------ -->
@@ -215,10 +217,12 @@ Duration: 1
 To create the service to host the application, connect to Snowflake and run the following command in the Snowflake console or using SnowSQL.
 
 ```sql
+USE ROLE ACCOUNTADMIN;
+GRANT BIND SERVICE ENDPOINT ON ACCOUNT TO ROLE DATA_API_ROLE;
+           
 USE ROLE DATA_API_ROLE;
-
 CREATE SERVICE API.PRIVATE.API
- IN COMPUTE POOL API_POOl
+ IN COMPUTE POOL API_POOL
  FROM SPECIFICATION
 $$
 spec:
@@ -256,13 +260,14 @@ SHOW ENDPOINTS IN SERVICE API;
 Note that the service is not public and that it doesn't have an ingress URL assigned.
 In the next step, you will learn how to reach the service.
 
-To verify, check the DNS of the API with this command:
+To verify, check that the DNS of the API is an internal domain:
 
 ```sql
 SHOW SERVICES;
 ```
 
-It should be `api.private.api.snowflakecomputing.internal`.
+> aside positive
+> Note the service's DNS from the `dns_name` column as that will be needed when creating the Ockam service.
 
 <!-- ------------------------ -->
 ## Accessing the Private API Securely
@@ -287,7 +292,8 @@ ockam project ticket --usage-count 1 --expires-in 1h \
 ockam project show --jq '.egress_allow_list[]'
 ```
 
-Note the `egress_allow_list` in the response as that will be needed in the next step.
+> aside positive
+> Note the `egress_allow_list` in the response as that will be needed in the next step.
 
 #### Create an Ockam node in Snowpark Container Services
 
@@ -301,13 +307,12 @@ docker push <repository_url>/ockam
 
 Next, create a new service in Snowflake to run the Ockam node. Run the following command in the Snowflake console or SnowSQL:
 
-Replace `&lt;EGRESS_ALLOW_LIST&gt;` values in `VALUE_LIST` with the `egress_allow_list` you just noted.
-```sh
-# Example
-VALUE_LIST = ("4ed9ff5d-4953-4080-83c7-e69a3477a545.projects.orchestrator.ockam.io:443");
-```
-
-Replace `&lt;OCKAM_ENROLLMENT_TICKET&gt;` with the contents of the `ticket` generated in the previous step with the `ockam project ticket` command.
+> aside positive
+> IMPORTANT:
+>
+> - Replace `&lt;EGRESS_ALLOW_LIST&gt;` values in `VALUE_LIST` with the `egress_allow_list` you just noted.
+> - Replace `&lt;OCKAM_ENROLLMENT_TICKET&gt;` with the contents of the `ticket` generated with the `ockam project ticket` command. You will find it in the root directory of your codespace.
+> - Replace `&lt;API_DNS&gt;` with the DNS of the API service you noted in the previous step.
 
 ```sql
 USE ROLE ACCOUNTADMIN;
@@ -341,7 +346,7 @@ spec:
       - |
         relay: snowflake-api-service-relay
         tcp-outlet:
-          to: api.private.api.snowflakecomputing.internal:8001
+          to: <API_DNS>:8001
           allow: snowflake-api-service-inlet
     env:
         OCKAM_DISABLE_UPGRADE_CHECK: true
